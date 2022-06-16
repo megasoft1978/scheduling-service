@@ -13,6 +13,9 @@ export class ScheduledJob {
 
   @Column()
   message: string;
+
+  @Column()
+  completed: boolean;
 }
 
 export enum ScheduledJobType {
