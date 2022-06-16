@@ -6,7 +6,9 @@ export class Job {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ScheduledJob, (scheduledJob) => scheduledJob.jobs)
+  @ManyToOne(() => ScheduledJob, (scheduledJob) => scheduledJob.jobs, {
+    onDelete: 'CASCADE',
+  })
   jobSchedule: ScheduledJob;
 
   @Column()

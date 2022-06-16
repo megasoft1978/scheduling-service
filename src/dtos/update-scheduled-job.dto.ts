@@ -10,4 +10,5 @@ export class UpdateScheduledJobDto {
   executionTime: Date;
   @ApiProperty()
   message: string;
+  completed: boolean;
 }

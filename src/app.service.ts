@@ -135,6 +135,7 @@ export class AppService {
   async updateScheduledJob(
     updateScheduledJobDto: UpdateScheduledJobDto,
   ): Promise<ScheduledJob> {
+    updateScheduledJobDto.completed = false;
     const result = await this.scheduledJobRepository.update(
       updateScheduledJobDto.id,
       updateScheduledJobDto,
