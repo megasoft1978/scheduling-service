@@ -1,12 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { ScheduledJob } from './scheduled-job.entity';
 
 @Entity()
 export class Job {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  scheduledJobId: number;
+  @ManyToOne(() => ScheduledJob, (scheduledJob) => scheduledJob.jobs)
+  jobSchedule: ScheduledJob;
 
   @Column()
   result: string;

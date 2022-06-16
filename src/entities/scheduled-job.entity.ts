@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Job } from './job';
 
 @Entity()
 export class ScheduledJob {
@@ -16,6 +17,9 @@ export class ScheduledJob {
 
   @Column()
   completed: boolean;
+
+  @OneToMany(() => Job, (job) => job.jobSchedule)
+  jobs: Job[];
 }
 
 export enum ScheduledJobType {

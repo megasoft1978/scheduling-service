@@ -24,36 +24,39 @@ export class AppService {
 
   @Interval(5000)
   async checkJobs() {
-    const scheduleJobs = await this.scheduledJobRepository.find({
+    const scheduledJobs = await this.scheduledJobRepository.find({
       where: {
         completed: false,
       },
     });
 
-    const jobs = await this.jobRepository.find();
+    const jobs = await this.jobRepository.find({ relations: ['jobSchedule'] });
+    console.log(jobs);
 
-    const scheduledJobsFiltered = scheduleJobs.filter((scheduleJob) => {
+    const scheduledJobsFiltered = scheduledJobs.filter((scheduledJob) => {
       let ok = false;
 
-      switch (scheduleJob.scheduleType) {
+      switch (scheduledJob.scheduleType) {
         case ScheduledJobType.Future:
-          if (
-            differenceInSeconds(scheduleJob.executionTime, new Date()) <= 10
-          ) {
-            if (
-              jobs.filter(
-                (job) =>
-                  job.scheduledJobId === scheduleJob.id &&
-                  differenceInMinutes(job.createdOn, new Date()) == 0,
-              ).length === 0
-            ) {
-              ok = true;
-            }
-          }
-          break;
-        case ScheduledJobType.Weekly:
+          ok = this.checkExecutionTime(
+            scheduledJob.id,
+            scheduledJob.executionTime,
+            jobs,
+          );
           break;
         case ScheduledJobType.Daily:
+          const executionTime = this.getTodayWithScheduledTime(
+            scheduledJob.executionTime,
+          );
+          ok = this.checkExecutionTime(scheduledJob.id, executionTime, jobs);
+          break;
+        case ScheduledJobType.Weekly:
+          if (new Date().getDay() === scheduledJob.executionTime.getDay()) {
+            const executionTime = this.getTodayWithScheduledTime(
+              scheduledJob.executionTime,
+            );
+            ok = this.checkExecutionTime(scheduledJob.id, executionTime, jobs);
+          }
           break;
       }
 
@@ -65,16 +68,44 @@ export class AppService {
     });
   }
 
+  getTodayWithScheduledTime(executionTime: Date): Date {
+    const now = new Date();
+    now.setHours(executionTime.getHours());
+    now.setMinutes(executionTime.getMinutes());
+    now.setSeconds(executionTime.getSeconds());
+    return now;
+  }
+
+  checkExecutionTime(
+    scheduledJobId: number,
+    executionTime: Date,
+    jobs: Job[],
+  ): boolean {
+    if (Math.abs(differenceInSeconds(executionTime, new Date())) <= 10) {
+      if (
+        jobs.filter(
+          (job) =>
+            job.jobSchedule.id === scheduledJobId &&
+            Math.abs(differenceInMinutes(job.createdOn, new Date())) == 0,
+        ).length === 0
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   getScheduledJobs(): Promise<ScheduledJob[]> {
     return this.scheduledJobRepository.find();
   }
 
   async executeJob(scheduledJob: ScheduledJob) {
     const job = await this.jobRepository.save({
-      scheduledJobId: scheduledJob.id,
+      jobSchedule: scheduledJob,
       result: scheduledJob.message,
       createdOn: new Date(),
-    });
+    } as Job);
 
     if (scheduledJob.scheduleType === ScheduledJobType.Future) {
       scheduledJob.completed = true;
@@ -126,6 +157,6 @@ export class AppService {
   }
 
   getJobs(): Promise<Job[]> {
-    return this.jobRepository.find();
+    return this.jobRepository.find({ relations: ['jobSchedule'] });
   }
 }
