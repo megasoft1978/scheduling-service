@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Interval, SchedulerRegistry } from '@nestjs/schedule';
+import { Interval } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateScheduledJobDto } from './dtos/create-scheduled-job.dto';
@@ -15,7 +15,6 @@ export class AppService {
   private readonly logger = new Logger(AppService.name);
 
   constructor(
-    private schedulerRegistry: SchedulerRegistry,
     @InjectRepository(ScheduledJob)
     private scheduledJobRepository: Repository<ScheduledJob>,
     @InjectRepository(Job)
@@ -31,7 +30,6 @@ export class AppService {
     });
 
     const jobs = await this.jobRepository.find({ relations: ['jobSchedule'] });
-    console.log(jobs);
 
     const scheduledJobsFiltered = scheduledJobs.filter((scheduledJob) => {
       let ok = false;
