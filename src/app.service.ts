@@ -122,7 +122,6 @@ export class AppService {
       message: createScheduledJobDto.message,
       completed: false,
     } as ScheduledJob);
-
     if (scheduledJob.scheduleType === ScheduledJobType.Immediate) {
       await this.executeJob(scheduledJob);
       scheduledJob.completed = true;

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -12,7 +13,10 @@ import { AppService } from './app.service';
 import { CreateScheduledJobDto } from './dtos/create-scheduled-job.dto';
 import { UpdateScheduledJobDto } from './dtos/update-scheduled-job.dto';
 import { Job } from './entities/job';
-import { ScheduledJob } from './entities/scheduled-job.entity';
+import {
+  ScheduledJob,
+  ScheduledJobType,
+} from './entities/scheduled-job.entity';
 
 @Controller()
 export class AppController {
@@ -23,10 +27,27 @@ export class AppController {
     return this.appService.getScheduledJobs();
   }
 
+  checkValidScheduleType(
+    createScheduledJobDto: CreateScheduledJobDto | UpdateScheduledJobDto,
+  ) {
+    console.log(createScheduledJobDto);
+    if (
+      createScheduledJobDto.scheduleType !== ScheduledJobType.Immediate &&
+      createScheduledJobDto.scheduleType !== ScheduledJobType.Future &&
+      createScheduledJobDto.scheduleType !== ScheduledJobType.Daily &&
+      createScheduledJobDto.scheduleType !== ScheduledJobType.Weekly
+    ) {
+      throw new BadRequestException(
+        `Invalid scheduleType ${createScheduledJobDto.scheduleType}. The allowed values are: ${ScheduledJobType.Immediate}, ${ScheduledJobType.Future}, ${ScheduledJobType.Daily}, ${ScheduledJobType.Weekly}`,
+      );
+    }
+  }
+
   @Post('schedule-jobs')
   createScheduledJob(
     @Body() createScheduledJobDto: CreateScheduledJobDto,
   ): Promise<ScheduledJob> {
+    this.checkValidScheduleType(createScheduledJobDto);
     return this.appService.createScheduledJob(createScheduledJobDto);
   }
 
@@ -34,6 +55,7 @@ export class AppController {
   async updateScheduledJob(
     @Body() updateScheduledJobDto: UpdateScheduledJobDto,
   ): Promise<ScheduledJob> {
+    this.checkValidScheduleType(updateScheduledJobDto);
     const scheduledJob = await this.appService.updateScheduledJob(
       updateScheduledJobDto,
     );
