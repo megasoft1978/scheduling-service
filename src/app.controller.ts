@@ -30,7 +30,6 @@ export class AppController {
   checkValidScheduleType(
     createScheduledJobDto: CreateScheduledJobDto | UpdateScheduledJobDto,
   ) {
-    console.log(createScheduledJobDto);
     if (
       createScheduledJobDto.scheduleType !== ScheduledJobType.Immediate &&
       createScheduledJobDto.scheduleType !== ScheduledJobType.Future &&
